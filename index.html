@@ -1,0 +1,1123 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#1f5d96" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Story Creator" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <link rel="manifest" href="./manifest.json" />
+    <title>Story Creator</title>
+    <style>
+:root {
+  --bg: linear-gradient(160deg, #f7fbff 0%, #edf5ff 55%, #fffaf5 100%);
+  --card: #fff;
+  --ink: #12263a;
+  --muted: #607186;
+  --accent: #1f5d96;
+  --accent-soft: #e7f1ff;
+  --line: #d7e2ee;
+  --danger: #b03232;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "Avenir Next", "Nunito", "Trebuchet MS", sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+}
+button, input, select, textarea { font: inherit; }
+button {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ink);
+  padding: 10px 12px;
+  font-weight: 700;
+}
+button:active { transform: translateY(1px); }
+.hidden { display: none !important; }
+
+.topbar {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 10px 8px;
+}
+.top-center {
+  display: grid;
+  grid-template-columns: minmax(0, 420px) auto;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+}
+.title-input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px;
+  background: #fff;
+}
+.tabs {
+  display: flex;
+  gap: 6px;
+}
+.tab.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.menu-drawer {
+  position: fixed;
+  left: 10px;
+  top: 84px;
+  bottom: 10px;
+  width: 220px;
+  margin: 0;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 8px 18px rgba(21, 37, 56, 0.08);
+  padding: 8px;
+  overflow: auto;
+  z-index: 10;
+}
+.menu-actions {
+  display: grid;
+  gap: 8px;
+}
+.menu-actions button,
+.menu-actions .file-upload {
+  margin: 0;
+  width: 100%;
+}
+.menu-actions label {
+  display: grid;
+  gap: 6px;
+}
+.file-upload {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  text-align: center;
+  font-weight: 700;
+  background: #fff;
+}
+.file-upload input { display: none; }
+.app {
+  padding: 6px 10px 12px 244px;
+}
+.canvas-shell {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid #e2ecf7;
+  border-radius: 16px;
+  padding: 8px;
+}
+.canvas {
+  position: relative;
+  margin-inline: auto;
+  width: min(100%, 760px);
+  aspect-ratio: 8.2 / 11;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.photo-item,
+.text-item {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  border: 2px solid transparent;
+  border-radius: 10px;
+  touch-action: none;
+  user-select: none;
+}
+.photo-item.selected,
+.text-item.selected { border-color: var(--accent); }
+.photo-wrap {
+  border: 1px solid #dfe8f2;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.photo-wrap img {
+  display: block;
+  width: 100%;
+  pointer-events: none;
+}
+.photo-caption {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 6px);
+  width: 100%;
+  margin: 0;
+  padding: 4px 6px;
+  min-height: 22px;
+  border: 1px solid #dfe8f2;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.95);
+  white-space: pre-wrap;
+  word-break: break-word;
+  cursor: text;
+}
+.photo-resize {
+  position: absolute;
+  right: -7px;
+  bottom: -7px;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 2px solid var(--accent);
+  background: #fff;
+  display: none;
+}
+.photo-item.selected .photo-resize { display: block; }
+
+.text-item {
+  min-width: 80px;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.9);
+}
+.text-item p {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.text-resize {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 2px solid var(--accent);
+  background: #fff;
+}
+
+.pages-bottom {
+  margin-top: 10px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 8px;
+}
+.pages-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+}
+.page-chip {
+  min-width: 92px;
+  padding: 8px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #fff;
+  text-align: left;
+}
+.page-chip.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.saved-view {
+  padding: 8px 10px 12px 244px;
+}
+.journal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 8px;
+}
+.journal-tile {
+  min-height: 84px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  padding: 8px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.journal-tile.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.tile-date { font-size: 0.72rem; color: var(--muted); }
+.tile-name { font-size: 0.84rem; font-weight: 700; line-height: 1.2; }
+
+.floating {
+  position: fixed;
+  right: 10px;
+  bottom: 10px;
+  width: min(360px, calc(100vw - 20px));
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 10px;
+  box-shadow: 0 12px 22px rgba(18, 38, 58, 0.18);
+  z-index: 9999;
+}
+.float-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: -4px -4px 8px;
+  padding: 6px;
+  cursor: move;
+}
+.float-head strong { font-size: 0.94rem; }
+.float-grid { display: grid; gap: 8px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.align { display: flex; gap: 6px; }
+.align button { flex: 1; padding: 8px 6px; font-size: 0.82rem; }
+.align button.active { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.input, textarea, select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 9px;
+}
+textarea { min-height: 78px; }
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(14, 25, 36, 0.45);
+  z-index: 18;
+}
+
+@media (max-width: 760px) {
+  .menu-drawer { width: 180px; }
+  .app, .saved-view { padding-left: 200px; }
+  .top-center { grid-template-columns: 1fr; }
+  .tabs { justify-content: center; }
+  .floating { left: 10px; right: 10px; width: auto; }
+}
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="top-center">
+        <input id="titleInput" class="title-input" type="text" maxlength="90" placeholder="Journal Title" />
+        <div class="tabs">
+          <button id="mainTabBtn" class="tab active" type="button">Main Page</button>
+          <button id="savedTabBtn" class="tab" type="button">Saved Journals</button>
+        </div>
+      </div>
+    </header>
+
+    <aside id="drawer" class="menu-drawer">
+      <div class="menu-actions">
+        <button id="newJournalBtn" type="button">New Journal</button>
+        <button id="addPageBtn" type="button">Add Page</button>
+        <label class="file-upload">
+          <input id="photoInput" type="file" accept="image/*" multiple />
+          Add Photos
+        </label>
+        <button id="addTextBtn" type="button">Add Text</button>
+        <button id="dupPageBtn" type="button">Duplicate Page</button>
+        <button id="editPhotoTextBtn" class="hidden" type="button">Edit Text</button>
+        <button id="deleteTextBtn" class="hidden" type="button">Delete Text</button>
+        <button id="deletePhotoBtn" class="hidden" type="button">Delete Photo</button>
+        <button id="delPageBtn" type="button">Delete Page</button>
+        <button id="savePdfBtn" type="button">Save PDF</button>
+        <button id="sharePdfBtn" type="button">Share PDF</button>
+      </div>
+    </aside>
+    <div id="drawerOverlay" class="overlay hidden"></div>
+
+    <main id="mainView" class="app">
+      <section class="canvas-shell">
+        <section id="canvas" class="canvas"></section>
+      </section>
+      <section class="pages-bottom">
+        <div id="pagesRow" class="pages-row"></div>
+      </section>
+      <p id="statusText"></p>
+    </main>
+
+    <main id="savedView" class="saved-view hidden">
+      <div class="row2" style="margin-bottom:8px;">
+        <button id="editJournalBtn" type="button">Edit</button>
+        <button id="deleteJournalBtn" type="button">Delete</button>
+      </div>
+      <section id="journalGrid" class="journal-grid"></section>
+    </main>
+
+    <section id="textFloat" class="floating hidden">
+      <div id="floatHead" class="float-head">
+        <strong>Text Tools</strong>
+        <button id="closeFloatBtn" type="button">Close</button>
+      </div>
+      <div class="float-grid">
+        <label>Text <textarea id="textInput"></textarea></label>
+        <div class="row2">
+          <label>Color <input id="textColor" type="color" value="#20374b" /></label>
+          <label>Size <input id="textSize" class="input" type="number" min="10" max="72" value="24" /></label>
+        </div>
+        <label>Font
+          <select id="textFont">
+            <option value="Avenir Next, Nunito, sans-serif">Avenir/Nunito</option>
+            <option value="Georgia, serif">Georgia</option>
+            <option value="Verdana, sans-serif">Verdana</option>
+            <option value="Trebuchet MS, sans-serif">Trebuchet</option>
+            <option value="Courier New, monospace">Courier</option>
+          </select>
+        </label>
+        <div class="align">
+          <button id="alignL" type="button">Left</button>
+          <button id="alignC" class="active" type="button">Center</button>
+          <button id="alignR" type="button">Right</button>
+        </div>
+      </div>
+    </section>
+
+    <template id="photoTpl">
+      <article class="photo-item">
+        <div class="photo-wrap"><img alt="photo" draggable="false" /></div>
+        <p class="photo-caption"></p>
+        <span class="photo-resize"></span>
+      </article>
+    </template>
+
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script>
+const STORAGE_KEY = "story-creator-mobile-v1";
+const state = {
+  journals: [],
+  activeJournalId: null,
+  activePageId: null,
+  selected: null,
+  textTarget: null,
+  floatOpen: false,
+  activeView: "main",
+  pageTouchDragId: null,
+};
+
+const q = (id) => document.getElementById(id);
+const els = {
+  menuBtn: q("menuBtn"), drawer: q("drawer"), drawerOverlay: q("drawerOverlay"),
+  titleInput: q("titleInput"),
+  mainTabBtn: q("mainTabBtn"), savedTabBtn: q("savedTabBtn"),
+  mainView: q("mainView"), savedView: q("savedView"),
+  newJournalBtn: q("newJournalBtn"), addPageBtn: q("addPageBtn"), dupPageBtn: q("dupPageBtn"),
+  photoInput: q("photoInput"), addTextBtn: q("addTextBtn"), editPhotoTextBtn: q("editPhotoTextBtn"),
+  deletePhotoBtn: q("deletePhotoBtn"), deleteTextBtn: q("deleteTextBtn"), delPageBtn: q("delPageBtn"),
+  savePdfBtn: q("savePdfBtn"), sharePdfBtn: q("sharePdfBtn"),
+  canvas: q("canvas"), pagesRow: q("pagesRow"), statusText: q("statusText"),
+  journalGrid: q("journalGrid"), editJournalBtn: q("editJournalBtn"), deleteJournalBtn: q("deleteJournalBtn"),
+  textFloat: q("textFloat"), floatHead: q("floatHead"), closeFloatBtn: q("closeFloatBtn"),
+  textInput: q("textInput"), textColor: q("textColor"), textSize: q("textSize"), textFont: q("textFont"),
+  alignL: q("alignL"), alignC: q("alignC"), alignR: q("alignR"),
+  photoTpl: q("photoTpl"),
+};
+
+const id = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`;
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+function makeTextBox(linkPhotoId = null) {
+  return {
+    id: id(), text: "", x: 50, y: 55, widthPercent: 28,
+    color: "#20374b", fontSize: 24, fontFamily: "Avenir Next, Nunito, sans-serif", align: "left",
+    linkPhotoId, z: Date.now(),
+  };
+}
+function makePhoto(src) {
+  return { id: id(), src, x: 50, y: 45, widthPercent: 34, z: Date.now() };
+}
+function makePage() { return { id: id(), photos: [], texts: [] }; }
+function makeJournal(name = "My Journal") {
+  const p = makePage();
+  return { id: id(), name, pages: [p], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+}
+
+function activeJournal() { return state.journals.find((j) => j.id === state.activeJournalId) || null; }
+function activePage() {
+  const j = activeJournal();
+  return j ? j.pages.find((p) => p.id === state.activePageId) || null : null;
+}
+function selectedItem() {
+  const p = activePage();
+  if (!p || !state.selected) return null;
+  if (state.selected.type === "photo") return p.photos.find((x) => x.id === state.selected.id) || null;
+  return p.texts.find((x) => x.id === state.selected.id) || null;
+}
+function linkedCaption(page, photoId) {
+  return page.texts.find((t) => t.linkPhotoId === photoId) || null;
+}
+function textTarget() {
+  const p = activePage();
+  if (!p || !state.textTarget) return null;
+  return p.texts.find((t) => t.id === state.textTarget.id) || null;
+}
+
+function save() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ journals: state.journals, activeJournalId: state.activeJournalId, activePageId: state.activePageId }));
+    return true;
+  } catch {
+    return false;
+  }
+}
+function touch() { const j = activeJournal(); if (j) j.updatedAt = new Date().toISOString(); }
+function status(msg, isErr=false) { els.statusText.textContent = msg; els.statusText.style.color = isErr ? "#b03232" : "#0a5d43"; }
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) throw new Error("new");
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed.journals) || parsed.journals.length === 0) throw new Error("empty");
+    state.journals = parsed.journals.map((j) => ({
+      id: j.id || id(),
+      name: j.name || "My Journal",
+      createdAt: j.createdAt || j.updatedAt || new Date().toISOString(),
+      updatedAt: j.updatedAt || new Date().toISOString(),
+      pages: Array.isArray(j.pages) && j.pages.length ? j.pages.map((p) => ({
+        id: p.id || id(),
+        photos: Array.isArray(p.photos) ? p.photos.map((x) => ({ ...x, id: x.id || id(), widthPercent: Number(x.widthPercent) || 34 })) : [],
+        texts: Array.isArray(p.texts) ? p.texts.map((t) => ({ ...t, id: t.id || id(), linkPhotoId: t.linkPhotoId || null, widthPercent: Number(t.widthPercent) || 28, fontSize: Number(t.fontSize) || 24, align: t.align || "left", color: t.color || "#20374b", fontFamily: t.fontFamily || "Avenir Next, Nunito, sans-serif" })) : [],
+      })) : [makePage()],
+    }));
+    state.activeJournalId = state.journals.some((j) => j.id === parsed.activeJournalId) ? parsed.activeJournalId : state.journals[0].id;
+    const j = activeJournal();
+    state.activePageId = j.pages.some((p) => p.id === parsed.activePageId) ? parsed.activePageId : j.pages[0].id;
+  } catch {
+    const j = makeJournal("Weekend Getaway");
+    state.journals = [j];
+    state.activeJournalId = j.id;
+    state.activePageId = j.pages[0].id;
+  }
+}
+
+function openMenu(open) {
+  if (els.drawer) els.drawer.classList.remove("hidden");
+  if (els.drawerOverlay) els.drawerOverlay.classList.add("hidden");
+}
+
+function renderTop() {
+  const j = activeJournal();
+  els.titleInput.value = j ? j.name : "";
+  els.mainTabBtn.classList.toggle("active", state.activeView === "main");
+  els.savedTabBtn.classList.toggle("active", state.activeView === "saved");
+  els.mainView.classList.toggle("hidden", state.activeView !== "main");
+  els.savedView.classList.toggle("hidden", state.activeView !== "saved");
+}
+
+function renderJournals() {
+  els.journalGrid.innerHTML = "";
+  state.journals.slice().sort((a,b) => new Date(b.createdAt)-new Date(a.createdAt)).forEach((j) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = `journal-tile ${j.id === state.activeJournalId ? "active" : ""}`;
+    b.innerHTML = `<span class="tile-date">${new Date(j.createdAt).toLocaleDateString()}</span><span class="tile-name">${j.name}</span>`;
+    b.addEventListener("click", () => { state.activeJournalId = j.id; state.activePageId = j.pages[0].id; state.selected = null; save(); renderJournals(); });
+    els.journalGrid.appendChild(b);
+  });
+}
+
+function renderPages() {
+  const j = activeJournal();
+  els.pagesRow.innerHTML = "";
+  if (!j) return;
+  const touchDevice = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+
+  function reorder(fromId, toId) {
+    if (!fromId || !toId || fromId === toId) return;
+    const from = j.pages.findIndex((p) => p.id === fromId);
+    const to = j.pages.findIndex((p) => p.id === toId);
+    if (from < 0 || to < 0) return;
+    const [m] = j.pages.splice(from, 1);
+    j.pages.splice(to, 0, m);
+    touch(); save(); render();
+  }
+
+  j.pages.forEach((p, i) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = `page-chip ${p.id === state.activePageId ? "active" : ""}`;
+    b.draggable = !touchDevice;
+    b.dataset.pid = p.id;
+    const capCount = p.texts.filter((t) => t.linkPhotoId && (t.text||"").trim()).length;
+    b.innerHTML = `<span>Page ${i+1}</span><br><small>${p.photos.length} photos, ${capCount} captions</small>`;
+    b.addEventListener("click", () => { state.activePageId = p.id; state.selected = null; render(); });
+    b.addEventListener("dragstart", (e) => { e.dataTransfer?.setData("pid", p.id); });
+    b.addEventListener("dragover", (e) => { e.preventDefault(); });
+    b.addEventListener("drop", (e) => { e.preventDefault(); reorder(e.dataTransfer?.getData("pid"), p.id); });
+    b.addEventListener("touchstart", () => { state.pageTouchDragId = p.id; }, { passive: true });
+    b.addEventListener("touchmove", (e) => {
+      const fromId = state.pageTouchDragId;
+      if (!fromId) return;
+      const t = e.touches[0];
+      const el = document.elementFromPoint(t.clientX, t.clientY)?.closest?.(".page-chip");
+      const toId = el?.dataset?.pid;
+      if (toId && toId !== fromId) { state.pageTouchDragId = toId; reorder(fromId, toId); }
+    }, { passive: true });
+    b.addEventListener("touchend", () => { state.pageTouchDragId = null; }, { passive: true });
+    els.pagesRow.appendChild(b);
+  });
+}
+
+function stylePos(item, isPhoto=false) {
+  const o = { left: `${item.x}%`, top: `${item.y}%`, zIndex: String(item.z || 1) };
+  if (isPhoto) o.width = `${item.widthPercent}%`;
+  else o.width = `${item.widthPercent || 28}%`;
+  return o;
+}
+
+function attachDrag(node, item, type) {
+  let pid = null;
+  function move(e) {
+    if (pid !== e.pointerId) return;
+    const r = els.canvas.getBoundingClientRect();
+    item.x = clamp(((e.clientX - r.left)/r.width)*100, 4, 96);
+    item.y = clamp(((e.clientY - r.top)/r.height)*100, 4, 96);
+    Object.assign(node.style, stylePos(item, type === "photo"));
+    touch(); save();
+  }
+  function up(e) {
+    if (pid !== e.pointerId) return;
+    pid = null;
+    node.releasePointerCapture(e.pointerId);
+    window.removeEventListener("pointermove", move);
+    window.removeEventListener("pointerup", up);
+  }
+  node.addEventListener("pointerdown", (e) => {
+    if (type === "text" && e.target instanceof HTMLElement && e.target.isContentEditable) return;
+    pid = e.pointerId;
+    node.setPointerCapture(e.pointerId);
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    state.selected = { type, id: item.id };
+    renderControls();
+  });
+}
+
+function attachResize(handle, node, item, min, max) {
+  let pid = null; let startX = 0; let startW = 0;
+  handle.addEventListener("pointerdown", (e) => {
+    e.stopPropagation();
+    pid = e.pointerId; startX = e.clientX; startW = Number(item.widthPercent)||28;
+    handle.setPointerCapture(e.pointerId);
+  });
+  handle.addEventListener("pointermove", (e) => {
+    if (pid !== e.pointerId) return;
+    const r = els.canvas.getBoundingClientRect();
+    const d = ((e.clientX - startX)/r.width)*100;
+    item.widthPercent = clamp(startW + d, min, max);
+    node.style.width = `${item.widthPercent}%`;
+    touch(); save();
+  });
+  handle.addEventListener("pointerup", (e) => { if (pid===e.pointerId) { pid = null; handle.releasePointerCapture(e.pointerId); } });
+}
+
+function renderCanvas() {
+  const p = activePage();
+  els.canvas.innerHTML = "";
+  if (!p) return;
+
+  const draw = [
+    ...p.photos.map((x) => ({ t: "photo", x })),
+    ...p.texts.filter((t) => !t.linkPhotoId).map((x) => ({ t: "text", x })),
+  ].sort((a,b)=> (a.x.z||0)-(b.x.z||0));
+
+  draw.forEach((entry) => {
+    if (entry.t === "photo") {
+      const photo = entry.x;
+      const cap = linkedCaption(p, photo.id);
+      const frag = els.photoTpl.content.cloneNode(true);
+      const node = frag.querySelector(".photo-item");
+      const img = frag.querySelector("img");
+      const caption = frag.querySelector(".photo-caption");
+      const resize = frag.querySelector(".photo-resize");
+      img.src = photo.src;
+      Object.assign(node.style, stylePos(photo, true));
+      if (state.selected?.type === "photo" && state.selected.id === photo.id) node.classList.add("selected");
+
+      if (cap) {
+        caption.classList.remove("hidden");
+        caption.textContent = cap.text || "";
+        caption.style.color = cap.color;
+        caption.style.fontSize = `${cap.fontSize}px`;
+        caption.style.fontFamily = cap.fontFamily;
+        caption.style.textAlign = cap.align;
+        caption.contentEditable = String(state.selected?.type === "photo" && state.selected.id === photo.id);
+        caption.addEventListener("input", () => { cap.text = caption.textContent || ""; touch(); save(); renderControls(); });
+      } else {
+        caption.classList.add("hidden");
+      }
+
+      node.addEventListener("click", () => { state.selected = { type: "photo", id: photo.id }; renderControls(); renderCanvas(); });
+      caption.addEventListener("click", (e) => {
+        e.stopPropagation();
+        state.selected = { type: "photo", id: photo.id };
+        if (cap) { state.textTarget = { type: "text", id: cap.id }; state.floatOpen = true; }
+        renderControls(); renderCanvas();
+        setTimeout(() => els.canvas.querySelector(".photo-item.selected .photo-caption")?.focus(), 0);
+      });
+
+      attachDrag(node, photo, "photo");
+      attachResize(resize, node, photo, 12, 90);
+      els.canvas.appendChild(frag);
+      return;
+    }
+
+    const box = entry.x;
+    const node = document.createElement("article");
+    node.className = "text-item";
+    const pTag = document.createElement("p");
+    pTag.textContent = box.text || "";
+    pTag.style.color = box.color;
+    pTag.style.fontSize = `${box.fontSize}px`;
+    pTag.style.fontFamily = box.fontFamily;
+    pTag.style.textAlign = box.align;
+    pTag.contentEditable = String(state.selected?.type === "text" && state.selected.id === box.id);
+    pTag.spellcheck = false;
+    node.appendChild(pTag);
+    const r = document.createElement("span"); r.className = "text-resize"; node.appendChild(r);
+
+    Object.assign(node.style, stylePos(box));
+    if (state.selected?.type === "text" && state.selected.id === box.id) node.classList.add("selected");
+
+    node.addEventListener("click", () => {
+      state.selected = { type: "text", id: box.id };
+      state.textTarget = { type: "text", id: box.id };
+      state.floatOpen = true;
+      renderControls(); renderCanvas();
+      setTimeout(() => {
+        const el = els.canvas.querySelector(".text-item.selected p");
+        if (el) { el.focus(); const range=document.createRange(); range.selectNodeContents(el); range.collapse(false); const s=window.getSelection(); s.removeAllRanges(); s.addRange(range); }
+      }, 0);
+    });
+
+    pTag.addEventListener("input", () => { box.text = pTag.textContent || ""; touch(); save(); renderControls(); });
+    attachDrag(node, box, "text");
+    attachResize(r, node, box, 12, 86);
+    els.canvas.appendChild(node);
+  });
+}
+
+function renderControls() {
+  const j = activeJournal();
+  const s = selectedItem();
+  const p = activePage();
+  els.titleInput.value = j ? j.name : "";
+
+  const photoSel = state.selected?.type === "photo" ? s : null;
+  const cap = photoSel && p ? linkedCaption(p, photoSel.id) : null;
+  const t = textTarget();
+  els.editPhotoTextBtn.classList.toggle("hidden", !photoSel);
+  els.deletePhotoBtn.classList.toggle("hidden", !photoSel);
+  els.deleteTextBtn.classList.toggle("hidden", !t);
+  els.editPhotoTextBtn.textContent = cap ? "Edit Text Below Photo" : "Add Text Below Photo";
+  els.textFloat.classList.toggle("hidden", !(state.floatOpen && t));
+  if (!t) return;
+  els.textInput.value = t.text || "";
+  els.textColor.value = t.color || "#20374b";
+  els.textSize.value = String(t.fontSize || 24);
+  els.textFont.value = t.fontFamily || "Avenir Next, Nunito, sans-serif";
+  const a = t.align || "left";
+  els.alignL.classList.toggle("active", a === "left");
+  els.alignC.classList.toggle("active", a === "center");
+  els.alignR.classList.toggle("active", a === "right");
+}
+
+function render() {
+  renderTop();
+  renderJournals();
+  renderPages();
+  renderCanvas();
+  renderControls();
+}
+
+function bestGridForCount(n) {
+  if (n <= 1) return { cols: 1, rows: 1 };
+  let best = { cols: 1, rows: n, score: 0 };
+  for (let cols = 1; cols <= Math.min(n, 4); cols += 1) {
+    const rows = Math.ceil(n / cols);
+    const score = Math.min((100 / cols) * 0.95, (100 / rows) * 0.95 * 1.25);
+    if (score > best.score) best = { cols, rows, score };
+  }
+  return { cols: best.cols, rows: best.rows };
+}
+
+function layoutPagePhotos(page) {
+  if (!page) return;
+  const photos = page.photos;
+  const n = photos.length;
+  if (!n) return;
+
+  const marginX = 4;
+  const marginTop = 4;
+  const marginBottom = 7;
+  const gapX = 2.5;
+  const gapY = 4;
+  const captionSpace = 8;
+  const aspectRatio = 0.75;
+  const { cols, rows } = bestGridForCount(n);
+  const usableW = 100 - marginX * 2;
+  const usableH = 100 - marginTop - marginBottom;
+  const cellW = (usableW - gapX * (cols - 1)) / cols;
+  const cellH = (usableH - gapY * (rows - 1)) / rows;
+  const photoW = Math.max(18, Math.min(cellW, (cellH - captionSpace) / aspectRatio));
+
+  photos.forEach((photo, idx) => {
+    const row = Math.floor(idx / cols);
+    const col = idx % cols;
+    const cellX = marginX + col * (cellW + gapX);
+    const cellY = marginTop + row * (cellH + gapY);
+    photo.widthPercent = photoW;
+    photo.x = cellX + cellW / 2;
+    photo.y = cellY + (photoW * aspectRatio) / 2;
+    const cap = linkedCaption(page, photo.id);
+    if (cap) cap.widthPercent = photoW;
+  });
+}
+
+function addPhotosToPages(dataUrls) {
+  const page = activePage();
+  if (!page || !dataUrls.length) return;
+
+  dataUrls.forEach((src) => {
+    const photo = makePhoto(src);
+    page.photos.push(photo);
+    state.selected = { type: "photo", id: photo.id };
+  });
+
+  layoutPagePhotos(page);
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    try {
+      const reader = new FileReader();
+      reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : "");
+      reader.onerror = () => reject(reader.error || new Error("read failed"));
+      reader.readAsDataURL(file);
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
+async function filesToDataUrls(files) {
+  const urls = [];
+  let skipped = 0;
+
+  for (const file of Array.from(files || [])) {
+    if (!file) {
+      skipped += 1;
+      continue;
+    }
+    try {
+      const dataUrl = await readFileAsDataUrl(file);
+      if (dataUrl) urls.push(dataUrl);
+      else skipped += 1;
+    } catch {
+      // Safari can fail FileReader for some library assets; blob URL fallback keeps import working.
+      if (typeof URL !== "undefined" && typeof URL.createObjectURL === "function") {
+        try {
+          urls.push(URL.createObjectURL(file));
+        } catch {
+          skipped += 1;
+        }
+      } else {
+        skipped += 1;
+      }
+    }
+  }
+
+  return { urls, skipped };
+}
+
+function addTextBox() {
+  const p = activePage();
+  if (!p) return;
+  const t = makeTextBox();
+  p.texts.push(t);
+  state.selected = { type: "text", id: t.id };
+  state.textTarget = { type: "text", id: t.id };
+  state.floatOpen = true;
+  touch(); save(); render();
+  setTimeout(() => els.canvas.querySelector(".text-item.selected p")?.focus(), 0);
+}
+
+function openPhotoCaptionEditor() {
+  const p = activePage();
+  const s = selectedItem();
+  if (!p || state.selected?.type !== "photo" || !s) { status("Select a photo first.", true); return; }
+  let cap = linkedCaption(p, s.id);
+  if (!cap) {
+    cap = makeTextBox(s.id);
+    cap.align = "center";
+    cap.color = "#20374b";
+    cap.widthPercent = Math.max(16, s.widthPercent);
+    p.texts.push(cap);
+  }
+  state.textTarget = { type: "text", id: cap.id };
+  state.floatOpen = true;
+  touch(); save(); render();
+  setTimeout(() => els.canvas.querySelector(".photo-item.selected .photo-caption")?.focus(), 0);
+}
+
+function deleteSelected() {
+  const p = activePage();
+  const s = selectedItem();
+  if (!p || !s) return;
+  if (state.selected.type === "photo") {
+    p.photos = p.photos.filter((x) => x.id !== s.id);
+    p.texts = p.texts.filter((x) => x.linkPhotoId !== s.id);
+  } else {
+    p.texts = p.texts.filter((x) => x.id !== s.id);
+  }
+  state.selected = null;
+  state.textTarget = null;
+  state.floatOpen = false;
+  touch(); save(); render();
+}
+
+function deleteTextTarget() {
+  const p = activePage();
+  const t = textTarget();
+  if (!p || !t) return;
+  p.texts = p.texts.filter((x) => x.id !== t.id);
+  state.textTarget = null;
+  state.floatOpen = false;
+  if (t.linkPhotoId) {
+    state.selected = { type: "photo", id: t.linkPhotoId };
+  } else {
+    state.selected = null;
+  }
+  touch();
+  save();
+  render();
+}
+
+async function buildPdfBlob() {
+  const j = activeJournal();
+  if (!j || !window.html2canvas || !window.jspdf?.jsPDF) throw new Error("pdf");
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ orientation: "p", unit: "pt", format: "a4" });
+
+  for (let i = 0; i < j.pages.length; i += 1) {
+    const page = j.pages[i];
+    const node = document.createElement("section");
+    node.style.cssText = "width:820px;height:1100px;background:#fff;position:fixed;left:-10000px;top:0;overflow:hidden;border:1px solid #e2e8f2;";
+
+    [...page.photos].sort((a,b)=>(a.z||0)-(b.z||0)).forEach((ph) => {
+      const wrap = document.createElement("article");
+      wrap.style.cssText = `position:absolute;left:${ph.x}%;top:${ph.y}%;width:${ph.widthPercent}%;transform:translate(-50%,-50%);`;
+      const img = document.createElement("img");
+      img.src = ph.src;
+      img.style.cssText = "width:100%;display:block;border:1px solid #e3ebf5;border-radius:12px;";
+      wrap.appendChild(img);
+      const cap = linkedCaption(page, ph.id);
+      if (cap) {
+        const t = document.createElement("p");
+        t.textContent = cap.text || "";
+        t.style.cssText = `position:absolute;left:0;top:calc(100% + 6px);width:100%;margin:0;padding:4px 6px;border:1px solid #dfe8f2;border-radius:8px;background:#fff;white-space:pre-wrap;word-break:break-word;color:${cap.color};font-size:${cap.fontSize}px;font-family:${cap.fontFamily};text-align:${cap.align};`;
+        wrap.appendChild(t);
+      }
+      node.appendChild(wrap);
+    });
+
+    [...page.texts.filter((t)=>!t.linkPhotoId)].sort((a,b)=>(a.z||0)-(b.z||0)).forEach((tx) => {
+      const pEl = document.createElement("p");
+      pEl.textContent = tx.text || "";
+      pEl.style.cssText = `position:absolute;left:${tx.x}%;top:${tx.y}%;width:${tx.widthPercent}%;transform:translate(-50%,-50%);margin:0;padding:6px 10px;background:#fff;color:${tx.color};font-size:${tx.fontSize}px;font-family:${tx.fontFamily};text-align:${tx.align};white-space:pre-wrap;`;
+      node.appendChild(pEl);
+    });
+
+    document.body.appendChild(node);
+    const canvas = await window.html2canvas(node, { scale: 2, backgroundColor: "#fff", useCORS: true });
+    document.body.removeChild(node);
+    const data = canvas.toDataURL("image/jpeg", 0.92);
+    const w = pdf.internal.pageSize.getWidth();
+    const h = pdf.internal.pageSize.getHeight();
+    if (i > 0) pdf.addPage();
+    pdf.addImage(data, "JPEG", 0, 0, w, h, undefined, "FAST");
+  }
+
+  return pdf.output("blob");
+}
+
+function download(blob, name) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function fileName() {
+  const d = new Date().toISOString().slice(0,10);
+  const n = (activeJournal()?.name || "journal").replace(/[^a-z0-9-_]+/gi, "_").slice(0, 40);
+  return `${n}-${d}.pdf`;
+}
+
+function bindFloatDrag() {
+  let pid = null, sx = 0, sy = 0, lx = 0, ty = 0;
+  els.floatHead.addEventListener("pointerdown", (e) => {
+    if (e.target.closest("button")) return;
+    pid = e.pointerId;
+    const r = els.textFloat.getBoundingClientRect();
+    sx = e.clientX; sy = e.clientY; lx = r.left; ty = r.top;
+    els.textFloat.style.left = `${lx}px`;
+    els.textFloat.style.top = `${ty}px`;
+    els.textFloat.style.right = "auto";
+    els.textFloat.style.bottom = "auto";
+    els.floatHead.setPointerCapture(e.pointerId);
+  });
+  els.floatHead.addEventListener("pointermove", (e) => {
+    if (pid !== e.pointerId) return;
+    els.textFloat.style.left = `${lx + (e.clientX - sx)}px`;
+    els.textFloat.style.top = `${ty + (e.clientY - sy)}px`;
+  });
+  els.floatHead.addEventListener("pointerup", (e) => { if (pid === e.pointerId) { pid = null; els.floatHead.releasePointerCapture(e.pointerId); } });
+}
+
+function bind() {
+  els.menuBtn?.addEventListener("click", () => openMenu(true));
+  els.drawerOverlay?.addEventListener("click", () => openMenu(false));
+
+  els.mainTabBtn.addEventListener("click", () => { state.activeView = "main"; renderTop(); });
+  els.savedTabBtn.addEventListener("click", () => { state.activeView = "saved"; renderTop(); });
+
+  els.titleInput.addEventListener("input", (e) => { const j = activeJournal(); if (!j) return; j.name = e.target.value; touch(); save(); renderJournals(); });
+
+  els.newJournalBtn.addEventListener("click", () => {
+    const name = prompt("Journal name", `My Journal ${state.journals.length + 1}`);
+    if (!name) return;
+    const j = makeJournal(name.trim());
+    state.journals.push(j); state.activeJournalId = j.id; state.activePageId = j.pages[0].id; state.selected = null;
+    touch(); save(); render(); openMenu(false);
+  });
+
+  els.addPageBtn.addEventListener("click", () => {
+    const j = activeJournal(); if (!j) return;
+    const p = makePage(); j.pages.push(p); state.activePageId = p.id; state.selected = null;
+    touch(); save(); render();
+  });
+
+  els.dupPageBtn.addEventListener("click", () => {
+    const j = activeJournal(); const p = activePage(); if (!j || !p) return;
+    const c = { id: id(), photos: p.photos.map((x) => ({ ...x, id: id() })), texts: p.texts.map((t) => ({ ...t, id: id() })) };
+    j.pages.push(c); state.activePageId = c.id; state.selected = null;
+    touch(); save(); render();
+  });
+
+  els.delPageBtn.addEventListener("click", () => {
+    const j = activeJournal(); if (!j) return;
+    if (j.pages.length <= 1) { status("At least one page is required.", true); return; }
+    j.pages = j.pages.filter((p) => p.id !== state.activePageId);
+    state.activePageId = j.pages[0].id; state.selected = null;
+    touch(); save(); render();
+  });
+
+  els.photoInput.addEventListener("change", async (e) => {
+    const files = e.target.files;
+    if (!files?.length) return;
+    try {
+      const { urls, skipped } = await filesToDataUrls(files);
+      if (!urls.length) throw new Error("no-readable-files");
+      addPhotosToPages(urls);
+      touch();
+      const persisted = save();
+      render();
+      const addedLabel = `${urls.length} photo${urls.length > 1 ? "s" : ""} added.`;
+      const skipLabel = skipped ? ` ${skipped} skipped.` : "";
+      const storageLabel = persisted ? "" : " Added, but device storage is full so this may not persist after reload.";
+      status(`${addedLabel}${skipLabel}${storageLabel}`, !persisted);
+    } catch {
+      status("Unable to read selected photo(s).", true);
+    } finally {
+      e.target.value = "";
+      openMenu(false);
+    }
+  });
+
+  els.addTextBtn.addEventListener("click", () => { addTextBox(); openMenu(false); });
+  els.editPhotoTextBtn.addEventListener("click", () => { openPhotoCaptionEditor(); openMenu(false); });
+  els.deleteTextBtn.addEventListener("click", () => { deleteTextTarget(); openMenu(false); });
+  els.deletePhotoBtn.addEventListener("click", () => { deleteSelected(); openMenu(false); });
+
+  els.editJournalBtn.addEventListener("click", () => { state.activeView = "main"; renderTop(); });
+  els.deleteJournalBtn.addEventListener("click", () => {
+    const j = activeJournal();
+    if (!j) return;
+    if (state.journals.length <= 1) { status("At least one journal is required.", true); return; }
+    if (!confirm(`Delete "${j.name}"?`)) return;
+    state.journals = state.journals.filter((x) => x.id !== j.id);
+    state.activeJournalId = state.journals[0].id;
+    state.activePageId = state.journals[0].pages[0].id;
+    state.selected = null;
+    save(); render();
+  });
+
+  els.textInput.addEventListener("input", (e) => {
+    const t = textTarget(); if (!t) return;
+    t.text = e.target.value; touch(); save(); renderCanvas();
+  });
+  els.textColor.addEventListener("input", (e) => { const t = textTarget(); if (!t) return; t.color = e.target.value; touch(); save(); renderCanvas(); renderControls(); });
+  els.textSize.addEventListener("input", (e) => { const t = textTarget(); if (!t) return; t.fontSize = clamp(Number(e.target.value)||24, 10, 72); touch(); save(); renderCanvas(); renderControls(); });
+  els.textFont.addEventListener("change", (e) => { const t = textTarget(); if (!t) return; t.fontFamily = e.target.value; touch(); save(); renderCanvas(); renderControls(); });
+  els.alignL.addEventListener("click", () => { const t = textTarget(); if (!t) return; t.align = "left"; touch(); save(); renderCanvas(); renderControls(); });
+  els.alignC.addEventListener("click", () => { const t = textTarget(); if (!t) return; t.align = "center"; touch(); save(); renderCanvas(); renderControls(); });
+  els.alignR.addEventListener("click", () => { const t = textTarget(); if (!t) return; t.align = "right"; touch(); save(); renderCanvas(); renderControls(); });
+  els.closeFloatBtn.addEventListener("click", () => { state.floatOpen = false; renderControls(); });
+
+  els.canvas.addEventListener("pointerdown", (e) => {
+    if (e.target.closest(".photo-item,.text-item,.photo-caption")) return;
+    state.selected = null; render();
+  });
+
+  els.savePdfBtn.addEventListener("click", async () => {
+    try {
+      status("Building PDF...");
+      const blob = await buildPdfBlob();
+      download(blob, fileName());
+      status("PDF saved.");
+    } catch {
+      status("PDF export failed.", true);
+    }
+    openMenu(false);
+  });
+
+  els.sharePdfBtn.addEventListener("click", async () => {
+    try {
+      status("Preparing PDF...");
+      const blob = await buildPdfBlob();
+      const file = new File([blob], fileName(), { type: "application/pdf" });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: "Story Creator" });
+      } else {
+        download(blob, file.name);
+      }
+      status("Done.");
+    } catch {
+      status("Share canceled or unsupported.", true);
+    }
+    openMenu(false);
+  });
+}
+
+load();
+bind();
+bindFloatDrag();
+render();
+status("Ready.");
+
+if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js").catch(() => {});
+  });
+}
+    </script>
+  </body>
+</html>
