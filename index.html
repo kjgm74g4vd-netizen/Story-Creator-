@@ -42,10 +42,18 @@ button:active { transform: translateY(1px); }
 
 .topbar {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: auto 1fr;
   gap: 10px;
   align-items: center;
   padding: 10px 10px 8px;
+}
+.top-left-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.top-left-actions button {
+  white-space: nowrap;
 }
 .top-center {
   display: grid;
@@ -89,6 +97,11 @@ button:active { transform: translateY(1px); }
 .menu-actions {
   display: grid;
   gap: 8px;
+}
+.menu-actions .layout-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
 }
 .menu-actions button,
 .menu-actions .file-upload {
@@ -164,10 +177,8 @@ button:active { transform: translateY(1px); }
   word-break: break-word;
   cursor: text;
 }
-.photo-resize {
+.resize-handle {
   position: absolute;
-  right: -7px;
-  bottom: -7px;
   width: 18px;
   height: 18px;
   border-radius: 999px;
@@ -175,7 +186,12 @@ button:active { transform: translateY(1px); }
   background: #fff;
   display: none;
 }
-.photo-item.selected .photo-resize { display: block; }
+.resize-handle[data-corner="nw"] { left: -8px; top: -8px; }
+.resize-handle[data-corner="ne"] { right: -8px; top: -8px; }
+.resize-handle[data-corner="sw"] { left: -8px; bottom: -8px; }
+.resize-handle[data-corner="se"] { right: -8px; bottom: -8px; }
+.photo-item.selected .resize-handle,
+.text-item.selected .resize-handle { display: block; }
 
 .text-item {
   min-width: 80px;
@@ -187,17 +203,6 @@ button:active { transform: translateY(1px); }
   white-space: pre-wrap;
   word-break: break-word;
 }
-.text-resize {
-  position: absolute;
-  right: -6px;
-  bottom: -6px;
-  width: 16px;
-  height: 16px;
-  border-radius: 999px;
-  border: 2px solid var(--accent);
-  background: #fff;
-}
-
 .pages-bottom {
   margin-top: 10px;
   background: #fff;
@@ -253,15 +258,26 @@ button:active { transform: translateY(1px); }
 
 .floating {
   position: fixed;
-  right: 10px;
-  bottom: 10px;
-  width: min(360px, calc(100vw - 20px));
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: min(430px, calc(100vw - 12px));
+  max-height: 42vh;
+  overflow: auto;
   background: #fff;
   border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 10px;
-  box-shadow: 0 12px 22px rgba(18, 38, 58, 0.18);
+  border-bottom: 0;
+  border-radius: 22px 22px 0 0;
+  padding: 10px 12px calc(12px + env(safe-area-inset-bottom));
+  box-shadow: 0 -10px 28px rgba(18, 38, 58, 0.18);
   z-index: 9999;
+}
+.sheet-bar {
+  width: 56px;
+  height: 5px;
+  border-radius: 999px;
+  background: #c9d8ea;
+  margin: 0 auto 10px;
 }
 .float-head {
   display: flex;
@@ -269,10 +285,18 @@ button:active { transform: translateY(1px); }
   align-items: center;
   margin: -4px -4px 8px;
   padding: 6px;
-  cursor: move;
 }
 .float-head strong { font-size: 0.94rem; }
 .float-grid { display: grid; gap: 8px; }
+.sheet-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.sheet-actions button {
+  flex: 1 1 120px;
+}
 .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .align { display: flex; gap: 6px; }
 .align button { flex: 1; padding: 8px 6px; font-size: 0.82rem; }
@@ -293,16 +317,51 @@ textarea { min-height: 78px; }
 }
 
 @media (max-width: 760px) {
-  .menu-drawer { width: 180px; }
-  .app, .saved-view { padding-left: 200px; }
+  .menu-drawer {
+    left: 0;
+    right: 0;
+    top: auto;
+    bottom: 0;
+    width: auto;
+    border-radius: 18px 18px 0 0;
+    border-bottom: 0;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 -10px 22px rgba(21, 37, 56, 0.12);
+  }
+  .menu-actions {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: calc(env(safe-area-inset-bottom) + 4px);
+  }
+  .menu-actions button,
+  .menu-actions .file-upload {
+    width: auto;
+    flex: 0 0 auto;
+    min-width: 118px;
+  }
+  .menu-actions .layout-row {
+    display: flex;
+    gap: 6px;
+    flex: 0 0 auto;
+  }
+  .app, .saved-view {
+    padding: 6px 10px 140px;
+  }
+  .topbar { grid-template-columns: 1fr; }
+  .top-left-actions { justify-content: center; }
   .top-center { grid-template-columns: 1fr; }
   .tabs { justify-content: center; }
-  .floating { left: 10px; right: 10px; width: auto; }
+  .floating { width: calc(100vw - 8px); max-height: 34vh; }
 }
     </style>
   </head>
   <body>
     <header class="topbar">
+      <div class="top-left-actions">
+        <button id="topPhotoEditBtn" type="button">Edit Photo</button>
+      </div>
       <div class="top-center">
         <input id="titleInput" class="title-input" type="text" maxlength="90" placeholder="Journal Title" />
         <div class="tabs">
@@ -328,6 +387,13 @@ textarea { min-height: 78px; }
         <button id="delPageBtn" type="button">Delete Page</button>
         <button id="savePdfBtn" type="button">Save PDF</button>
         <button id="sharePdfBtn" type="button">Share PDF</button>
+        <div class="layout-row">
+          <button class="layout-btn" data-layout="auto" type="button">Auto</button>
+          <button class="layout-btn" data-layout="grid2" type="button">2-Up</button>
+          <button class="layout-btn" data-layout="grid4" type="button">Grid</button>
+          <button class="layout-btn" data-layout="focus" type="button">Focus</button>
+          <button class="layout-btn" data-layout="strip" type="button">Strip</button>
+        </div>
       </div>
     </aside>
     <div id="drawerOverlay" class="overlay hidden"></div>
@@ -351,11 +417,17 @@ textarea { min-height: 78px; }
     </main>
 
     <section id="textFloat" class="floating hidden">
+      <div class="sheet-bar"></div>
       <div id="floatHead" class="float-head">
-        <strong>Text Tools</strong>
-        <button id="closeFloatBtn" type="button">Close</button>
+        <strong id="sheetTitle">Edit</strong>
+        <button id="closeFloatBtn" type="button">Done</button>
       </div>
-      <div class="float-grid">
+      <div id="sheetPhotoTools" class="sheet-actions hidden">
+        <button id="sheetCaptionBtn" type="button">Add Text Below</button>
+        <button id="sheetDeleteTextBtn" type="button">Delete Text</button>
+        <button id="sheetDeletePhotoBtn" type="button">Delete Photo</button>
+      </div>
+      <div id="textToolFields" class="float-grid">
         <label>Text <textarea id="textInput"></textarea></label>
         <div class="row2">
           <label>Color <input id="textColor" type="color" value="#20374b" /></label>
@@ -382,7 +454,10 @@ textarea { min-height: 78px; }
       <article class="photo-item">
         <div class="photo-wrap"><img alt="photo" draggable="false" /></div>
         <p class="photo-caption"></p>
-        <span class="photo-resize"></span>
+        <span class="resize-handle" data-corner="nw"></span>
+        <span class="resize-handle" data-corner="ne"></span>
+        <span class="resize-handle" data-corner="sw"></span>
+        <span class="resize-handle" data-corner="se"></span>
       </article>
     </template>
 
@@ -407,6 +482,7 @@ const els = {
   titleInput: q("titleInput"),
   mainTabBtn: q("mainTabBtn"), savedTabBtn: q("savedTabBtn"),
   mainView: q("mainView"), savedView: q("savedView"),
+  topPhotoEditBtn: q("topPhotoEditBtn"),
   newJournalBtn: q("newJournalBtn"), addPageBtn: q("addPageBtn"), dupPageBtn: q("dupPageBtn"),
   photoInput: q("photoInput"), addTextBtn: q("addTextBtn"), editPhotoTextBtn: q("editPhotoTextBtn"),
   deletePhotoBtn: q("deletePhotoBtn"), deleteTextBtn: q("deleteTextBtn"), delPageBtn: q("delPageBtn"),
@@ -414,9 +490,12 @@ const els = {
   canvas: q("canvas"), pagesRow: q("pagesRow"), statusText: q("statusText"),
   journalGrid: q("journalGrid"), editJournalBtn: q("editJournalBtn"), deleteJournalBtn: q("deleteJournalBtn"),
   textFloat: q("textFloat"), floatHead: q("floatHead"), closeFloatBtn: q("closeFloatBtn"),
+  sheetTitle: q("sheetTitle"), sheetPhotoTools: q("sheetPhotoTools"),
+  sheetCaptionBtn: q("sheetCaptionBtn"), sheetDeleteTextBtn: q("sheetDeleteTextBtn"), sheetDeletePhotoBtn: q("sheetDeletePhotoBtn"),
+  textToolFields: q("textToolFields"),
   textInput: q("textInput"), textColor: q("textColor"), textSize: q("textSize"), textFont: q("textFont"),
   alignL: q("alignL"), alignC: q("alignC"), alignR: q("alignR"),
-  photoTpl: q("photoTpl"),
+  photoTpl: q("photoTpl"), layoutBtns: Array.from(document.querySelectorAll(".layout-btn")),
 };
 
 const id = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`;
@@ -522,6 +601,37 @@ function renderJournals() {
   });
 }
 
+function focusEditable(el) {
+  if (!el) return;
+  el.focus();
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  range.collapse(false);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+
+function selectPhoto(photoId, openSheet = false) {
+  const page = activePage();
+  if (!page) return;
+  const cap = linkedCaption(page, photoId);
+  state.selected = { type: "photo", id: photoId };
+  state.textTarget = cap ? { type: "text", id: cap.id } : null;
+  state.floatOpen = openSheet;
+  render();
+}
+
+function selectTextBox(textId, focusNow = false) {
+  state.selected = { type: "text", id: textId };
+  state.textTarget = { type: "text", id: textId };
+  state.floatOpen = false;
+  render();
+  if (focusNow) {
+    setTimeout(() => focusEditable(els.canvas.querySelector(".text-item.selected p")), 0);
+  }
+}
+
 function renderPages() {
   const j = activeJournal();
   els.pagesRow.innerHTML = "";
@@ -599,22 +709,42 @@ function attachDrag(node, item, type) {
   });
 }
 
-function attachResize(handle, node, item, min, max) {
-  let pid = null; let startX = 0; let startW = 0;
-  handle.addEventListener("pointerdown", (e) => {
-    e.stopPropagation();
-    pid = e.pointerId; startX = e.clientX; startW = Number(item.widthPercent)||28;
-    handle.setPointerCapture(e.pointerId);
+function attachResizeHandles(node, item, min, max, onResize) {
+  node.querySelectorAll(".resize-handle").forEach((handle) => {
+    let pid = null;
+    let startX = 0;
+    let startY = 0;
+    let startW = 0;
+    const corner = handle.dataset.corner || "se";
+    const dirX = corner.includes("w") ? -1 : 1;
+    const dirY = corner.includes("n") ? -1 : 1;
+
+    handle.addEventListener("pointerdown", (e) => {
+      e.stopPropagation();
+      pid = e.pointerId;
+      startX = e.clientX;
+      startY = e.clientY;
+      startW = Number(item.widthPercent) || 28;
+      handle.setPointerCapture(e.pointerId);
+    });
+    handle.addEventListener("pointermove", (e) => {
+      if (pid !== e.pointerId) return;
+      const r = els.canvas.getBoundingClientRect();
+      const dx = ((e.clientX - startX) / r.width) * 100 * dirX;
+      const dy = ((e.clientY - startY) / r.height) * 100 * dirY * 0.7;
+      item.widthPercent = clamp(startW + ((dx + dy) / 2), min, max);
+      node.style.width = `${item.widthPercent}%`;
+      if (onResize) onResize();
+      touch();
+      save();
+    });
+    handle.addEventListener("pointerup", (e) => {
+      if (pid === e.pointerId) {
+        pid = null;
+        handle.releasePointerCapture(e.pointerId);
+      }
+    });
   });
-  handle.addEventListener("pointermove", (e) => {
-    if (pid !== e.pointerId) return;
-    const r = els.canvas.getBoundingClientRect();
-    const d = ((e.clientX - startX)/r.width)*100;
-    item.widthPercent = clamp(startW + d, min, max);
-    node.style.width = `${item.widthPercent}%`;
-    touch(); save();
-  });
-  handle.addEventListener("pointerup", (e) => { if (pid===e.pointerId) { pid = null; handle.releasePointerCapture(e.pointerId); } });
 }
 
 function renderCanvas() {
@@ -635,7 +765,6 @@ function renderCanvas() {
       const node = frag.querySelector(".photo-item");
       const img = frag.querySelector("img");
       const caption = frag.querySelector(".photo-caption");
-      const resize = frag.querySelector(".photo-resize");
       img.src = photo.src;
       Object.assign(node.style, stylePos(photo, true));
       if (state.selected?.type === "photo" && state.selected.id === photo.id) node.classList.add("selected");
@@ -647,23 +776,29 @@ function renderCanvas() {
         caption.style.fontSize = `${cap.fontSize}px`;
         caption.style.fontFamily = cap.fontFamily;
         caption.style.textAlign = cap.align;
-        caption.contentEditable = String(state.selected?.type === "photo" && state.selected.id === photo.id);
+        caption.contentEditable = "true";
+        caption.spellcheck = false;
         caption.addEventListener("input", () => { cap.text = caption.textContent || ""; touch(); save(); renderControls(); });
       } else {
         caption.classList.add("hidden");
       }
 
-      node.addEventListener("click", () => { state.selected = { type: "photo", id: photo.id }; renderControls(); renderCanvas(); });
+      node.addEventListener("click", () => {
+        selectPhoto(photo.id, false);
+      });
       caption.addEventListener("click", (e) => {
         e.stopPropagation();
-        state.selected = { type: "photo", id: photo.id };
-        if (cap) { state.textTarget = { type: "text", id: cap.id }; state.floatOpen = true; }
-        renderControls(); renderCanvas();
-        setTimeout(() => els.canvas.querySelector(".photo-item.selected .photo-caption")?.focus(), 0);
+        selectPhoto(photo.id, false);
+        if (cap) {
+          setTimeout(() => focusEditable(els.canvas.querySelector(".photo-item.selected .photo-caption")), 0);
+        }
       });
 
       attachDrag(node, photo, "photo");
-      attachResize(resize, node, photo, 12, 90);
+      attachResizeHandles(node, photo, 12, 90, () => {
+        const linked = linkedCaption(p, photo.id);
+        if (linked) linked.widthPercent = photo.widthPercent;
+      });
       els.canvas.appendChild(frag);
       return;
     }
@@ -677,28 +812,26 @@ function renderCanvas() {
     pTag.style.fontSize = `${box.fontSize}px`;
     pTag.style.fontFamily = box.fontFamily;
     pTag.style.textAlign = box.align;
-    pTag.contentEditable = String(state.selected?.type === "text" && state.selected.id === box.id);
+    pTag.contentEditable = "true";
     pTag.spellcheck = false;
     node.appendChild(pTag);
-    const r = document.createElement("span"); r.className = "text-resize"; node.appendChild(r);
+    ["nw", "ne", "sw", "se"].forEach((corner) => {
+      const h = document.createElement("span");
+      h.className = "resize-handle";
+      h.dataset.corner = corner;
+      node.appendChild(h);
+    });
 
     Object.assign(node.style, stylePos(box));
     if (state.selected?.type === "text" && state.selected.id === box.id) node.classList.add("selected");
 
     node.addEventListener("click", () => {
-      state.selected = { type: "text", id: box.id };
-      state.textTarget = { type: "text", id: box.id };
-      state.floatOpen = true;
-      renderControls(); renderCanvas();
-      setTimeout(() => {
-        const el = els.canvas.querySelector(".text-item.selected p");
-        if (el) { el.focus(); const range=document.createRange(); range.selectNodeContents(el); range.collapse(false); const s=window.getSelection(); s.removeAllRanges(); s.addRange(range); }
-      }, 0);
+      selectTextBox(box.id, true);
     });
 
     pTag.addEventListener("input", () => { box.text = pTag.textContent || ""; touch(); save(); renderControls(); });
     attachDrag(node, box, "text");
-    attachResize(r, node, box, 12, 86);
+    attachResizeHandles(node, box, 12, 86);
     els.canvas.appendChild(node);
   });
 }
@@ -712,12 +845,23 @@ function renderControls() {
   const photoSel = state.selected?.type === "photo" ? s : null;
   const cap = photoSel && p ? linkedCaption(p, photoSel.id) : null;
   const t = textTarget();
+  els.topPhotoEditBtn.disabled = !photoSel;
   els.editPhotoTextBtn.classList.toggle("hidden", !photoSel);
   els.deletePhotoBtn.classList.toggle("hidden", !photoSel);
   els.deleteTextBtn.classList.toggle("hidden", !t);
   els.editPhotoTextBtn.textContent = cap ? "Edit Text Below Photo" : "Add Text Below Photo";
-  els.textFloat.classList.toggle("hidden", !(state.floatOpen && t));
-  if (!t) return;
+  const showSheet = state.floatOpen && !!t;
+  els.textFloat.classList.toggle("hidden", !showSheet);
+  els.sheetPhotoTools.classList.add("hidden");
+  els.textToolFields.classList.toggle("hidden", !t);
+  els.sheetTitle.textContent = t ? "Text Tools" : (photoSel ? "Photo Tools" : "Edit");
+  els.sheetCaptionBtn.textContent = cap ? "Edit Text Below" : "Add Text Below";
+  els.sheetDeleteTextBtn.classList.toggle("hidden", !t);
+  els.sheetDeletePhotoBtn.classList.toggle("hidden", !photoSel);
+  if (!t) {
+    els.textInput.value = "";
+    return;
+  }
   els.textInput.value = t.text || "";
   els.textColor.value = t.color || "#20374b";
   els.textSize.value = String(t.fontSize || 24);
@@ -734,6 +878,65 @@ function render() {
   renderPages();
   renderCanvas();
   renderControls();
+}
+
+function applyLayoutPreset(mode) {
+  const page = activePage();
+  if (!page || !page.photos.length) {
+    status("Add photos first.", true);
+    return;
+  }
+
+  const n = page.photos.length;
+  let cols;
+  let rows;
+  if (mode === "focus") {
+    cols = 1;
+    rows = n;
+  } else if (mode === "grid2") {
+    cols = Math.min(2, n);
+    rows = Math.ceil(n / cols);
+  } else if (mode === "grid4") {
+    cols = Math.min(2, n);
+    rows = Math.ceil(n / cols);
+  } else if (mode === "strip") {
+    cols = Math.min(3, n);
+    rows = Math.ceil(n / cols);
+  } else {
+    const best = bestGridForCount(n);
+    cols = best.cols;
+    rows = best.rows;
+  }
+
+  const marginX = 4;
+  const marginTop = 4;
+  const marginBottom = 7;
+  const gapX = mode === "focus" ? 0 : 2.5;
+  const gapY = mode === "strip" ? 2 : 4;
+  const captionSpace = 8;
+  const aspectRatio = 0.75;
+  const usableW = 100 - marginX * 2;
+  const usableH = 100 - marginTop - marginBottom;
+  const cellW = (usableW - gapX * (cols - 1)) / cols;
+  const cellH = (usableH - gapY * (rows - 1)) / rows;
+  const widthScale = mode === "focus" ? 0.92 : mode === "strip" ? 0.82 : 1;
+  const photoW = Math.max(18, Math.min(cellW * widthScale, ((cellH - captionSpace) / aspectRatio) * widthScale));
+
+  page.photos.forEach((photo, idx) => {
+    const row = Math.floor(idx / cols);
+    const col = idx % cols;
+    const cellX = marginX + col * (cellW + gapX);
+    const cellY = marginTop + row * (cellH + gapY);
+    photo.widthPercent = photoW;
+    photo.x = cellX + cellW / 2;
+    photo.y = cellY + (photoW * aspectRatio) / 2;
+    const cap = linkedCaption(page, photo.id);
+    if (cap) cap.widthPercent = photoW;
+  });
+
+  touch();
+  save();
+  render();
 }
 
 function bestGridForCount(n) {
@@ -845,7 +1048,7 @@ function addTextBox() {
   state.textTarget = { type: "text", id: t.id };
   state.floatOpen = true;
   touch(); save(); render();
-  setTimeout(() => els.canvas.querySelector(".text-item.selected p")?.focus(), 0);
+  setTimeout(() => focusEditable(els.canvas.querySelector(".text-item.selected p")), 0);
 }
 
 function openPhotoCaptionEditor() {
@@ -861,9 +1064,9 @@ function openPhotoCaptionEditor() {
     p.texts.push(cap);
   }
   state.textTarget = { type: "text", id: cap.id };
-  state.floatOpen = true;
+  state.floatOpen = false;
   touch(); save(); render();
-  setTimeout(() => els.canvas.querySelector(".photo-item.selected .photo-caption")?.focus(), 0);
+  setTimeout(() => focusEditable(els.canvas.querySelector(".photo-item.selected .photo-caption")), 0);
 }
 
 function deleteSelected() {
@@ -873,6 +1076,7 @@ function deleteSelected() {
   if (state.selected.type === "photo") {
     p.photos = p.photos.filter((x) => x.id !== s.id);
     p.texts = p.texts.filter((x) => x.linkPhotoId !== s.id);
+    layoutPagePhotos(p);
   } else {
     p.texts = p.texts.filter((x) => x.id !== s.id);
   }
@@ -961,26 +1165,7 @@ function fileName() {
   return `${n}-${d}.pdf`;
 }
 
-function bindFloatDrag() {
-  let pid = null, sx = 0, sy = 0, lx = 0, ty = 0;
-  els.floatHead.addEventListener("pointerdown", (e) => {
-    if (e.target.closest("button")) return;
-    pid = e.pointerId;
-    const r = els.textFloat.getBoundingClientRect();
-    sx = e.clientX; sy = e.clientY; lx = r.left; ty = r.top;
-    els.textFloat.style.left = `${lx}px`;
-    els.textFloat.style.top = `${ty}px`;
-    els.textFloat.style.right = "auto";
-    els.textFloat.style.bottom = "auto";
-    els.floatHead.setPointerCapture(e.pointerId);
-  });
-  els.floatHead.addEventListener("pointermove", (e) => {
-    if (pid !== e.pointerId) return;
-    els.textFloat.style.left = `${lx + (e.clientX - sx)}px`;
-    els.textFloat.style.top = `${ty + (e.clientY - sy)}px`;
-  });
-  els.floatHead.addEventListener("pointerup", (e) => { if (pid === e.pointerId) { pid = null; els.floatHead.releasePointerCapture(e.pointerId); } });
-}
+function bindFloatDrag() {}
 
 function bind() {
   els.menuBtn?.addEventListener("click", () => openMenu(true));
@@ -988,6 +1173,14 @@ function bind() {
 
   els.mainTabBtn.addEventListener("click", () => { state.activeView = "main"; renderTop(); });
   els.savedTabBtn.addEventListener("click", () => { state.activeView = "saved"; renderTop(); });
+  els.topPhotoEditBtn.addEventListener("click", () => {
+    const photo = selectedItem();
+    if (state.selected?.type !== "photo" || !photo) {
+      status("Select a photo first.", true);
+      return;
+    }
+    openPhotoCaptionEditor();
+  });
 
   els.titleInput.addEventListener("input", (e) => { const j = activeJournal(); if (!j) return; j.name = e.target.value; touch(); save(); renderJournals(); });
 
@@ -1046,6 +1239,12 @@ function bind() {
   els.editPhotoTextBtn.addEventListener("click", () => { openPhotoCaptionEditor(); openMenu(false); });
   els.deleteTextBtn.addEventListener("click", () => { deleteTextTarget(); openMenu(false); });
   els.deletePhotoBtn.addEventListener("click", () => { deleteSelected(); openMenu(false); });
+  els.sheetCaptionBtn.addEventListener("click", () => { openPhotoCaptionEditor(); });
+  els.sheetDeleteTextBtn.addEventListener("click", () => { deleteTextTarget(); });
+  els.sheetDeletePhotoBtn.addEventListener("click", () => { deleteSelected(); });
+  els.layoutBtns.forEach((btn) => {
+    btn.addEventListener("click", () => applyLayoutPreset(btn.dataset.layout || "auto"));
+  });
 
   els.editJournalBtn.addEventListener("click", () => { state.activeView = "main"; renderTop(); });
   els.deleteJournalBtn.addEventListener("click", () => {
@@ -1074,7 +1273,10 @@ function bind() {
 
   els.canvas.addEventListener("pointerdown", (e) => {
     if (e.target.closest(".photo-item,.text-item,.photo-caption")) return;
-    state.selected = null; render();
+    state.selected = null;
+    state.textTarget = null;
+    state.floatOpen = false;
+    render();
   });
 
   els.savePdfBtn.addEventListener("click", async () => {
